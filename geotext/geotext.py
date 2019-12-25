@@ -105,15 +105,17 @@ class GeoText(object):
 
     def __init__(self, text, country=None):
         city_regex = r"[A-ZÀ-Ú]+[a-zà-ú]+[ \-]?(?:d[a-u].)?(?:[A-ZÀ-Ú]+[a-zà-ú]+)*"
-        candidates = re.findall(city_regex, text)
+        final_matches = []
+        candidates = re.finditer(city_regex, text)
         # Removing white spaces from candidates
-        candidates = [candidate.strip() for candidate in candidates]
-        self.countries = [each for each in candidates
-                          if each.lower() in self.index.countries]
-        self.cities = [each for each in candidates
-                       if each.lower() in self.index.cities
+        for match in candidates:
+            final_matches.append([match.span(), match.group.strip()])
+        self.countries = [[each[0], each[1]] for each in candidates
+                          if each[1].lower() in self.index.countries]
+        self.cities = [[each[0], each[1]] for each in candidates
+                       if each[1].lower() in self.index.cities
                        # country names are not considered cities
-                       and each.lower() not in self.index.countries]
+                       and each[1].lower() not in self.index.countries]
         if country is not None:
             self.cities = [city for city in self.cities if self.index.cities[city.lower()] == country]
 
